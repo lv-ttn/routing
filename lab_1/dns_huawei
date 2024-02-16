@@ -1,0 +1,58 @@
+Цель: Настроить DNS-сервер в eNSP
+  
+IP-план:
+fam_1 - gi0/0/0 - 1.2.5.254 - 255.255.255.0 - 100.1.2.100
+         -  gi0/0/1 - 100.1.2.254 - 255.255.255.0 - 100.1.2.100
+fam_2 - vlanif1 - 1.2.5.253 - 255.255.255.0 - 1.2.5.254 - 100.1.2.100
+pc1 - 1.2.5.100 - 255.255.255.0 - 1.2.5.254 - 100.1.2.100
+pc2 - 1.2.5.200 - 255.255.255.0 - 1.2.5.254 - 100.1.2.100
+srv - 100.1.2.100 - 255.255.255.0 - 100.1.2.254 - 100.1.2.100
+
+1. Пропишем базовую настройку маршрутизатора
+   system-view
+   sysname fam_1
+   interface gigabitethernet 0/0/0
+   ip address 1.2.5.254 255.255.255.0
+   description fam_A
+   quit
+   interface gigabitethernet 0/0/1
+   ip address 100.1.2.254 255.255.255.0
+   description fam_B
+   quit
+   dns resolve
+   dns server 100.1.2.100
+
+2. Пропишем базовую настройку коммутатора
+   system-view
+   sysname fam_2
+   int vlanif1
+   ip address 1.2.5.253 24
+   quit
+   ip route-static 0.0.0.0 0.0.0.0 1.2.5.254
+   dns resolve
+   dns server 100.1.2.100
+
+3. Настроим оконечные устройства
+a) PC1(GUI)
+   IP: 1.2.5.100 
+   Netmask: 255.255.255.0
+   Default Gateway: 1.2.5.254
+   DNS-server: 100.1.2.100
+b) PC2(GUI)
+   IP: 1.2.5.200
+   Netmask: 255.255.255.0
+   Default Gateway: 1.2.5.254
+   DNS-server: 100.1.2.100
+c) Server(GUI)
+   pc1.fam.ru - 1.2.5.100
+   pc2.fam.ru - 1.2.5.200
+   srv.fam.ru - 100.1.2.100
+   sw.fam.ru - 1.2.5.253
+   add
+   start
+
+Результаты:
+C pc1, fam_2, fam_1 проходит пинг по доменному имени сервера.
+
+
+
