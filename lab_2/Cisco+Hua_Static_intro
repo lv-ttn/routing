@@ -1,0 +1,44 @@
+Цель: Настроить статическую маршрутизацию, связь между GNS3 и eNSP
+
+1. Настроим устройство R2
+system-view
+sysname fam_1
+interface gigabitethernet 0/0/1
+ip address 11.1.2.254 24
+quit
+int gi 0/0/0
+ip address 15.1.2.2 24
+quit
+dns resolve
+dns server 11.1.2.100
+ip route-static 10.1.2.0 24 15.1.2.1
+display ip int br
+display ip routing-table
+
+2. Настроим устройство R1
+conf t
+hostname fam1
+int fa0/0
+no sh
+ip address 10.1.2.254 255.255.255.0
+ip domain-lookup
+ip name-server 11.1.2.100
+ip route 11.1.2.0 255.255.255.0 15.1.2.2
+
+3. Настроим сервер 
+ip 11.1.2.100
+gateway 11.1.2.254
+255.255.255.0
+dns 11.1.2.100
+name.fam.ru - 11.1.2.100
+
+4. Настроим PC2 
+ip 10.1.2.100/24 10.1.2.254
+ip dns 11.1.2.100
+show ip
+save
+
+5. Настроим PC1 
+ip 10.1.2.200/24 10.1.2.254
+ip dns 11.1.2.100
+save
