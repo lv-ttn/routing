@@ -1,0 +1,80 @@
+IP-план:
+SW1
+vlan 1 - 20.12.12.10 - 255.255.255.0 - 
+R1(Cisco)
+gi0/1 - 100.100.100.12 - 255.255.255.0 
+gi0/0 - 10.12.12.1 - 255.255.255.0 
+lo1 - 150.12.151.1 - 255.255.255.0 
+lo2 - 150.12.152.1 - 255.255.255.0 
+lo3 - 150.12.153.1 - 255.255.255.0 
+lo4 - 150.12.154.1 - 255.255.255.0 
+R2(Eltex)
+gi0/0/1 - 20.12.12.1 - 255.255.255.0 
+gi0/0/2 - 10.12.12.2 - 255.255.255.0 
+lo1 + lo2 + lo3 + lo4 = 150.12.144.0/20
+1. Настроим R1
+enable
+configure terminal
+hostname R1
+int range gi0/0-1
+ip summary-address rip 150.12.144.0 255.255.240.0
+ex
+interface GigabitEthernet0/1
+ip address 100.100.100.12 255.255.255.0
+no shutdown
+exit
+interface GigabitEthernet0/0
+ip address 10.12.12.1 255.255.255.0
+no shutdown
+exit
+interface Loopback1
+ip address 150.12.151.1 255.255.255.0
+exit
+interface Loopback2
+ip address 150.12.152.1 255.255.255.0
+exit
+interface Loopback3
+ip address 150.12.153.1 255.255.255.0
+exit
+interface Loopback4
+ip address 150.12.154.1 255.255.255.0
+exit
+router rip
+network 10.12.12.0 
+network 100.100.100.0
+network 150.12.144.0
+version 2
+no auto-summary
+end
+
+2. Настроим R2
+configure
+hostname R2
+interface GigabitEthernet1/0/1
+ip address 20.12.12.1/24
+no ip rip summary address  150.12.144.0/20
+ip firewall disable
+exit
+interface GigabitEthernet1/0/2
+ip address 10.12.12.2/24
+ip rip summary address  150.12.144.0/20
+ip firewall disable
+exit
+router rip
+network 20.12.12.0
+enable
+end
+commit
+confirm
+
+3. Настроим SW
+en
+conf t
+hostname SW
+int vlan 1
+ip address 20.12.12.10 255.255.255.0 
+no sh
+ex
+ip default-gateway 20.12.12.1
+end
+wr mem
