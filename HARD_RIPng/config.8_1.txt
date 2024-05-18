@@ -1,0 +1,84 @@
+#SW1
+
+en
+conf t
+sdm prefer dual-ipv4-and-ipv6 default
+end
+reload
+
+en
+conf t
+hostname SW1
+ipv6 unicast-routing
+
+int vlan 1
+ipv6 enable
+ipv6 address 2001:beef:cafe:12::10/64
+exit
+
+ipv6 route ::/0 2001:beef:cafe:12::1
+
+enable secret cisco
+username cisco privilege 15 password cisco
+line vty 0 4
+transport input telnet
+logg syn
+login local
+end
+
+#Cisco
+
+en
+conf t
+hostname Cisco
+ipv6 unicast-routing
+  
+int gi0/1
+ipv6 enable
+ipv6 rip 1 enable
+no sh
+ipv6 address 2001:beef:cafe:12::1/64
+exit
+
+int gi0/0
+no sh
+ipv6 en
+ipv6 address 2002:beef:cafe:12::1/64
+ipv6 rip 1 enable
+exit
+
+ipv6 router rip 1
+ex
+
+enable secret cisco
+username cisco privilege 15 password cisco
+line vty 0 4
+transport input telnet
+logg syn
+login local
+end
+
+#Eltex
+configure
+hostname Eltex
+
+ipv6 router rip
+ena
+network 2002:beef:cafe:12::/64
+network 2003:beef:cafe:12::/64
+ex
+
+int gi1/0/1
+ipv6 enable
+ip firewall disable
+ipv6 address 2002:beef:cafe:12::10/64
+ex
+
+int gi1/0/2
+ipv6 enable
+ip firewall disable
+ipv6 address 2003:beef:cafe:12::12/64
+end
+commit
+confirm
+
